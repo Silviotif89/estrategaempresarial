@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ruta del Estratega · Simulador de decisiones</title>
+<style>
+:root{
+  --ink:#172333;--muted:#667486;--paper:#f6f3ed;--card:#fffdfa;--line:#e5ddd1;
+  --teal:#087d78;--tealSoft:#dff1ee;--gold:#e8b85d;--navy:#172333;--danger:#a74b43;
+  --rational:#4169a1;--architect:#8766a9;--coordinator:#238b84;--coach:#d08a35;--judge:#a75656;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 100% 0,#d7edeb,transparent 28%),radial-gradient(circle at 0 0,#f9dfb5,transparent 25%),var(--paper);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+main{max-width:980px;margin:auto;padding:34px 18px 60px}
+.hero{display:flex;justify-content:space-between;gap:22px;align-items:flex-start;margin-bottom:18px}
+.kicker{display:inline-block;background:var(--tealSoft);color:var(--teal);border-radius:999px;padding:7px 11px;font-size:.77rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+h1{font-family:Georgia,"Times New Roman",serif;font-size:clamp(2.25rem,6vw,4.3rem);line-height:.98;margin:13px 0 10px;letter-spacing:-.035em}
+.hero p{max-width:640px;margin:0;color:var(--muted);line-height:1.55}
+.miniBadge{background:var(--navy);color:#fff;padding:14px 16px;border-radius:17px;min-width:175px}.miniBadge b{display:block;color:#f3ca78;font-size:.75rem;text-transform:uppercase;letter-spacing:.08em}.miniBadge span{display:block;margin-top:5px;font-size:.92rem}
+.panel{background:rgba(255,253,250,.96);border:1px solid var(--line);border-radius:22px;padding:24px;margin-top:18px;box-shadow:0 16px 42px rgba(50,42,25,.06)}
+.intro h2,.questionCard h2,.result h2{font-family:Georgia,"Times New Roman",serif;margin:5px 0 10px;font-size:1.75rem}
+.intro p{margin:0;color:#344256;line-height:1.55}
+.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.flow div{border-left:3px solid var(--gold);padding-left:11px}.flow b{display:block}.flow small{display:block;color:var(--muted);margin-top:4px;line-height:1.4}
+.sectionTitle{font-size:.83rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin:24px 0 11px}
+.caseGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.caseCard{appearance:none;background:var(--card);border:1.5px solid var(--line);border-radius:17px;padding:18px;text-align:left;cursor:pointer;transition:.18s;min-height:150px;color:var(--ink)}
+.caseCard:hover{transform:translateY(-2px);border-color:#a7b2bc}.caseCard.selected{outline:3px solid var(--navy);outline-offset:2px;border-color:var(--navy)}
+.caseIcon{font-size:1.7rem;display:block;margin-bottom:12px}.caseCard b{display:block;margin-bottom:6px;font-size:1rem}.caseCard small{color:var(--muted);line-height:1.42}
+.startRow{display:flex;justify-content:flex-end;margin-top:16px}.primary,.secondary{border:0;border-radius:12px;padding:13px 18px;font:800 .94rem inherit;cursor:pointer}.primary{background:var(--navy);color:#fff}.primary:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#ece7df;color:var(--ink)}
+.quiz{display:none}.quiz.show{display:block}
+.progressWrap{margin-top:18px}.progressMeta{display:flex;justify-content:space-between;gap:10px;font-size:.82rem;color:var(--muted);margin-bottom:7px}.progress{height:8px;background:#e9e2d8;border-radius:999px;overflow:hidden}.progressBar{height:100%;width:0;background:var(--teal);transition:width .25s ease}
+.contextCard{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-top:18px}.contextCard>div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px}.contextCard b{display:block;margin-bottom:5px}.contextCard p{margin:0;color:var(--muted);line-height:1.42;font-size:.92rem}
+.questionCard{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:23px}.eyebrow{font-size:.74rem;color:var(--teal);font-weight:900;letter-spacing:.1em;text-transform:uppercase}.questionCard p{color:#3a485a;line-height:1.5;margin:0 0 16px}.options{display:grid;grid-template-columns:1fr 1fr;gap:11px}.option{display:flex;gap:11px;align-items:flex-start;border:1.5px solid var(--line);border-radius:14px;padding:14px;background:#fff;cursor:pointer;transition:.15s;min-height:88px}.option:hover{border-color:#9aa8b2}.option.selected{background:var(--tealSoft);border-color:var(--teal)}.option input{margin-top:3px;accent-color:var(--navy)}.option span{line-height:1.4;font-size:.94rem}
+.navRow{display:flex;justify-content:space-between;gap:12px;margin-top:17px}.feedback{min-height:24px;margin-top:12px;color:var(--muted);font-size:.87rem}.feedback strong{color:var(--ink)}
+.result{display:none}.result.show{display:block}.winner{display:grid;grid-template-columns:.9fr 1.1fr;gap:18px;align-items:stretch}.winnerBox{background:var(--navy);color:#fff;border-radius:19px;padding:22px}.winnerBox small{color:#f3ca78;text-transform:uppercase;letter-spacing:.08em;font-weight:900}.winnerBox h2{font-size:2rem;margin-top:8px}.winnerBox p{color:#dce2e8;line-height:1.5}.summaryBox{background:#f4efe7;border-radius:19px;padding:20px}.summaryBox h3{margin:0 0 9px}.summaryBox p{margin:0;color:#405064;line-height:1.5}
+.profileBars{display:grid;gap:10px;margin-top:18px}.profileRow{display:grid;grid-template-columns:170px 1fr 48px;gap:10px;align-items:center}.profileRow b{font-size:.9rem}.bar{height:12px;background:#ebe4da;border-radius:999px;overflow:hidden}.fill{height:100%;border-radius:999px}.pct{text-align:right;font-weight:800;font-size:.88rem}
+.routeReview{margin-top:22px}.routeReview h3{margin-bottom:10px}.decisionList{display:grid;gap:9px}.decisionItem{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px}.decisionItem small{display:block;color:var(--teal);font-weight:800;margin-bottom:4px}.decisionItem p{margin:0;color:#405064;line-height:1.42;font-size:.9rem}
+.promptWrap{margin-top:22px}.promptWrap textarea{width:100%;min-height:330px;border:0;background:#172333;color:#f8f5ef;border-radius:15px;padding:16px;font:13px/1.48 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical}.promptActions{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}.hint{color:var(--muted);font-size:.84rem}.copyOk{color:var(--teal);font-weight:800;font-size:.84rem;display:none}
+.legend{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:18px}.legend div{border:1px solid var(--line);border-radius:11px;padding:9px;text-align:center;font-size:.75rem;color:var(--muted);background:#fff}.legend b{display:block;color:var(--ink);font-size:.76rem;margin-bottom:2px}
+@media(max-width:780px){.hero{display:block}.miniBadge{display:inline-block;margin-top:16px}.caseGrid{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.contextCard,.winner{grid-template-columns:1fr}.options{grid-template-columns:1fr}.profileRow{grid-template-columns:130px 1fr 42px}.legend{grid-template-columns:1fr 1fr}.legend div:last-child{grid-column:span 2}}
+@media(max-width:470px){main{padding:24px 13px 45px}.profileRow{grid-template-columns:1fr 42px}.bar{grid-column:1/3}.navRow{flex-direction:column-reverse}.navRow button{width:100%}}
+</style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <div>
+      <span class="kicker">Estrategia empresarial · Test de recorrido</span>
+      <h1>Ruta del<br>Estratega</h1>
+      <p>Un caso empresarial, diez decisiones y un resultado construido a partir de cómo piensa y actúa el equipo. No se elige el perfil: se descubre al final.</p>
+    </div>
+    <div class="miniBadge"><b>Reto grupal</b><span>10 decisiones · 5–7 min</span></div>
+  </section>
+
+  <section class="panel intro" id="intro">
+    <span class="eyebrow">Cómo funciona</span>
+    <h2>Decidan como si el negocio fuera suyo.</h2>
+    <p>Seleccionen un caso. Luego avancen por diez situaciones cortas. En cada una deben escoger la acción que realmente tomarían. Al finalizar, el simulador identifica el modelo de estratega dominante y genera el resumen para la exposición.</p>
+    <div class="flow">
+      <div><b>1. Caso</b><small>Elijan el negocio sobre el que tomarán decisiones.</small></div>
+      <div><b>2. Recorrido</b><small>Resuelvan 10 decisiones de mercado, equipo, recursos y ejecución.</small></div>
+      <div><b>3. Perfil</b><small>Descubran su estilo y lleven el prompt a una IA para presentar.</small></div>
+    </div>
+    <div class="sectionTitle">Elijan el caso</div>
+    <div class="caseGrid" id="caseGrid"></div>
+    <div class="startRow"><button class="primary" id="startBtn" disabled>Iniciar recorrido</button></div>
+  </section>
+
+  <section class="quiz" id="quiz">
+    <div class="progressWrap">
+      <div class="progressMeta"><span id="progressText">Decisión 1 de 10</span><span id="progressTopic"></span></div>
+      <div class="progress"><div class="progressBar" id="progressBar"></div></div>
+    </div>
+
+    <div class="contextCard">
+      <div><b id="caseName"></b><p id="caseProblem"></p></div>
+      <div><b>Situación actual</b><p id="caseState"></p></div>
+    </div>
+
+    <section class="questionCard">
+      <span class="eyebrow" id="questionTopic"></span>
+      <h2 id="questionTitle"></h2>
+      <p id="questionContext"></p>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="navRow">
+        <button class="secondary" id="backBtn" type="button">Anterior</button>
+        <button class="primary" id="nextBtn" type="button" disabled>Siguiente decisión</button>
+      </div>
+    </section>
+  </section>
+
+  <section class="panel result" id="result">
+    <span class="eyebrow">Resultado del recorrido</span>
+    <div class="winner">
+      <div class="winnerBox">
+        <small>Su estilo dominante es</small>
+        <h2 id="winnerName"></h2>
+        <p id="winnerDesc"></p>
+      </div>
+      <div class="summaryBox">
+        <h3>¿Qué dice de ustedes?</h3>
+        <p id="winnerReading"></p>
+      </div>
+    </div>
+
+    <div class="profileBars" id="profileBars"></div>
+
+    <div class="legend">
+      <div><b>Actor racional</b>Compara y elige.</div>
+      <div><b>Arquitecto</b>Diseña sistema y rumbo.</div>
+      <div><b>Coordinador</b>Alinea recursos y personas.</div>
+      <div><b>Entrenador</b>Desarrolla capacidades.</div>
+      <div><b>Orquestador y juez</b>Integra y decide.</div>
+    </div>
+
+    <div class="routeReview">
+      <h3>Sus 10 decisiones</h3>
+      <div class="decisionList" id="decisionList"></div>
+    </div>
+
+    <div class="promptWrap">
+      <h3>Prompt listo para la exposición</h3>
+      <textarea id="aiPrompt" readonly></textarea>
+      <div class="promptActions">
+        <span class="hint">Copien el texto y péguenlo en ChatGPT, Canva, Gamma u otra IA.</span>
+        <div><span class="copyOk" id="copyOk">Copiado ✓</span> <button class="primary" id="copyBtn" type="button">Copiar prompt</button></div>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+(() => {
+  const MODELS = {
+    rational:{name:'Actor racional', color:'var(--rational)', desc:'Analiza opciones, compara evidencia y busca la alternativa más conveniente.', reading:'Su recorrido muestra preferencia por decidir con datos, criterios claros y comparación de alternativas antes de comprometer recursos.'},
+    architect:{name:'Arquitecto', color:'var(--architect)', desc:'Diseña el rumbo, la estructura y las capacidades que sostienen la estrategia.', reading:'Tienden a pensar primero en el sistema completo: propuesta de valor, procesos, capacidades y una forma de crecer que pueda sostenerse en el tiempo.'},
+    coordinator:{name:'Coordinador', color:'var(--coordinator)', desc:'Alinea personas, áreas y recursos para que la estrategia pueda ejecutarse.', reading:'Sus decisiones ponen mucho peso en la coordinación, los acuerdos y la claridad de responsabilidades para convertir la estrategia en acción.'},
+    coach:{name:'Entrenador', color:'var(--coach)', desc:'Fortalece al equipo y desarrolla capacidades para mejorar la ejecución.', reading:'Su patrón revela confianza en el aprendizaje, la autonomía y el desarrollo del equipo como motor para responder a los retos del negocio.'},
+    judge:{name:'Orquestador y juez', color:'var(--judge)', desc:'Integra perspectivas, gestiona tensiones y toma la decisión final cuando hace falta.', reading:'Suelen escuchar distintas posiciones, equilibrar intereses y decidir con firmeza cuando la situación exige cerrar la discusión y avanzar.'}
+  };
+
+  const CASES = {
+    hotel:{
+      icon:'🏨', name:'Hotel de Estelí', short:'Baja ocupación entre semana.',
+      problem:'El hotel tiene habitaciones disponibles durante los días de semana y necesita aumentar reservas sin comprometer su estabilidad financiera.',
+      state:'Buena reputación, presupuesto limitado y mayor ocupación los fines de semana.',
+      flavor:{customer:'huéspedes', product:'estadías', channel:'reservas', growth:'ocupación'}
+    },
+    store:{
+      icon:'🛍️', name:'Tienda local', short:'Pierde visitas frente a canales digitales.',
+      problem:'La tienda recibe menos visitas porque los clientes comparan precios y compran por redes sociales. Necesita recuperar crecimiento sin perder su base actual.',
+      state:'Clientela conocida, inventario variado y poca presencia digital.',
+      flavor:{customer:'clientes', product:'productos', channel:'ventas', growth:'tráfico y ventas'}
+    },
+    coffee:{
+      icon:'☕', name:'Marca de café', short:'Quiere crecer sin perder identidad.',
+      problem:'Una marca de café de Estelí quiere entrar a nuevas ciudades sin perder su identidad, calidad ni control financiero.',
+      state:'Marca reconocida localmente, producción cuidada y recursos de expansión limitados.',
+      flavor:{customer:'consumidores', product:'café', channel:'distribución', growth:'expansión'}
+    }
+  };
+
+  const QUESTIONS = [
+    {
+      topic:'Diagnóstico', title:'Antes de actuar, ¿qué harían primero?',
+      context:'El negocio necesita resultados, pero todavía no hay una explicación única del problema.',
+      options:[
+        {text:'Comparar ventas, costos, comportamiento del cliente y tres alternativas antes de decidir.', score:{rational:3,judge:1}},
+        {text:'Rediseñar la propuesta de valor y definir qué capacidades necesita el negocio para competir mejor.', score:{architect:3,rational:1}},
+        {text:'Reunir a las áreas clave para identificar dónde se rompe la ejecución y acordar prioridades.', score:{coordinator:3,judge:1}},
+        {text:'Hablar con el equipo de primera línea y convertir sus hallazgos en un plan de mejora y aprendizaje.', score:{coach:3,coordinator:1}},
+        {text:'Escuchar finanzas, ventas y operaciones; luego cerrar una decisión concreta y comunicarla.', score:{judge:3,coordinator:1}}
+      ]
+    },
+    {
+      topic:'Cliente', title:'Aparecen señales de que el cliente está cambiando. ¿Cómo responden?',
+      context:'Los hábitos de compra se mueven más rápido que la organización.',
+      options:[
+        {text:'Medir qué segmentos cambiaron y priorizar el que tenga mayor potencial y mejor margen.', score:{rational:3,architect:1}},
+        {text:'Replantear la experiencia completa del cliente para que el negocio sea más relevante a futuro.', score:{architect:3,coach:1}},
+        {text:'Alinear atención, ventas y operaciones para responder con una experiencia consistente.', score:{coordinator:3,architect:1}},
+        {text:'Entrenar al equipo para detectar nuevas necesidades y adaptar la atención en el momento.', score:{coach:3,coordinator:1}},
+        {text:'Combinar datos y opiniones del equipo, elegir una respuesta y probarla de inmediato.', score:{judge:3,rational:1}}
+      ]
+    },
+    {
+      topic:'Presupuesto', title:'El presupuesto se reduce 25%. ¿Qué protegen?',
+      context:'No alcanza para ejecutar todo lo planeado.',
+      options:[
+        {text:'Mantener únicamente las acciones con mejor relación entre costo, impacto y posibilidad de medición.', score:{rational:3,judge:1}},
+        {text:'Proteger las inversiones que sostienen la propuesta de valor y la capacidad futura del negocio.', score:{architect:3,rational:1}},
+        {text:'Redistribuir recursos entre áreas para que ninguna parte crítica de la ejecución quede desconectada.', score:{coordinator:3,architect:1}},
+        {text:'Cuidar las acciones que fortalezcan al equipo y eviten depender siempre de recursos externos.', score:{coach:3,architect:1}},
+        {text:'Escuchar qué considera crítico cada área y tomar una decisión final aun si no todos quedan conformes.', score:{judge:3,coordinator:1}}
+      ]
+    },
+    {
+      topic:'Competencia', title:'Un competidor copia su oferta. ¿Qué hacen?',
+      context:'La ventaja que parecía distinta ya no es exclusiva.',
+      options:[
+        {text:'Comparar nuevamente precios, costos, atributos y respuesta del mercado para elegir el siguiente movimiento.', score:{rational:3,architect:1}},
+        {text:'Construir una ventaja más difícil de copiar basada en procesos, experiencia y capacidades propias.', score:{architect:3,coach:1}},
+        {text:'Coordinar una respuesta rápida entre mercadeo, ventas y operaciones para no enviar mensajes contradictorios.', score:{coordinator:3,judge:1}},
+        {text:'Usar el reto para que el equipo genere soluciones y aprenda a innovar de forma continua.', score:{coach:3,architect:1}},
+        {text:'Pedir propuestas breves, valorar sus implicaciones y escoger una sola línea de acción.', score:{judge:3,rational:1}}
+      ]
+    },
+    {
+      topic:'Crecimiento', title:'Surge una oportunidad de crecer más rápido de lo previsto.',
+      context:'La oportunidad es atractiva, pero puede presionar recursos y calidad.',
+      options:[
+        {text:'Proyectar demanda, margen y riesgo; avanzar solo si los números sostienen la expansión.', score:{rational:3,architect:1}},
+        {text:'Diseñar una expansión por etapas con procesos y capacidades que eviten perder calidad.', score:{architect:3,rational:1}},
+        {text:'Definir responsables, recursos y coordinación entre áreas antes de abrir el nuevo frente.', score:{coordinator:3,architect:1}},
+        {text:'Preparar al equipo con nuevas habilidades y delegar más responsabilidad antes de crecer.', score:{coach:3,coordinator:1}},
+        {text:'Escuchar las posiciones a favor y en contra, establecer condiciones mínimas y decidir.', score:{judge:3,rational:1}}
+      ]
+    },
+    {
+      topic:'Equipo', title:'El equipo no está de acuerdo con la estrategia elegida.',
+      context:'Hay resistencia y la ejecución puede frenarse.',
+      options:[
+        {text:'Mostrar los datos y criterios que sustentan la decisión para reducir la discusión subjetiva.', score:{rational:3,judge:1}},
+        {text:'Explicar cómo cada decisión encaja en el rumbo general y qué capacidades se busca construir.', score:{architect:3,coordinator:1}},
+        {text:'Convertir la estrategia en tareas, responsables, tiempos y acuerdos concretos entre áreas.', score:{coordinator:3,judge:1}},
+        {text:'Abrir un espacio para escuchar dudas, desarrollar habilidades y aumentar la apropiación del equipo.', score:{coach:3,coordinator:1}},
+        {text:'Escuchar las objeciones clave, ajustar lo necesario y cerrar una decisión final para avanzar.', score:{judge:3,coach:1}}
+      ]
+    },
+    {
+      topic:'Crisis', title:'Una queja pública empieza a ganar atención en redes.',
+      context:'La empresa necesita reaccionar sin agravar el problema.',
+      options:[
+        {text:'Verificar hechos, impacto y riesgos antes de definir la respuesta pública.', score:{rational:3,judge:1}},
+        {text:'Usar la crisis para corregir la causa estructural que permitió que el problema ocurriera.', score:{architect:3,rational:1}},
+        {text:'Activar un protocolo claro entre atención, operaciones y comunicación para responder de forma coherente.', score:{coordinator:3,architect:1}},
+        {text:'Acompañar al equipo que atiende al cliente y convertir el error en aprendizaje operativo.', score:{coach:3,coordinator:1}},
+        {text:'Reunir información rápida, escuchar criterios clave y designar una posición oficial única.', score:{judge:3,coordinator:1}}
+      ]
+    },
+    {
+      topic:'Innovación', title:'Les proponen una idea nueva, pero no hay certeza de que funcione.',
+      context:'Puede abrir oportunidades, aunque también consumir recursos.',
+      options:[
+        {text:'Hacer una prueba pequeña con indicadores definidos y decidir después según los resultados.', score:{rational:3,architect:1}},
+        {text:'Evaluar si la idea encaja con el rumbo del negocio y puede convertirse en una capacidad estratégica.', score:{architect:3,rational:1}},
+        {text:'Definir qué áreas deben participar para que la prueba no falle por falta de coordinación.', score:{coordinator:3,architect:1}},
+        {text:'Dar al equipo un reto controlado para experimentar, aprender y proponer mejoras.', score:{coach:3,rational:1}},
+        {text:'Escuchar a promotores y críticos de la idea, fijar límites y decidir si se prueba o se descarta.', score:{judge:3,rational:1}}
+      ]
+    },
+    {
+      topic:'Ejecución', title:'La estrategia es buena, pero los resultados no aparecen.',
+      context:'Ya pasaron varias semanas y el avance es menor al esperado.',
+      options:[
+        {text:'Revisar indicadores y distinguir si falla la estrategia o su ejecución antes de cambiar el rumbo.', score:{rational:3,judge:1}},
+        {text:'Revisar si el negocio tiene procesos, estructura y capacidades suficientes para sostener la estrategia.', score:{architect:3,rational:1}},
+        {text:'Detectar dependencias, cuellos de botella y responsabilidades poco claras entre áreas.', score:{coordinator:3,architect:1}},
+        {text:'Trabajar con el equipo sobre habilidades, retroalimentación y obstáculos cotidianos de ejecución.', score:{coach:3,coordinator:1}},
+        {text:'Pedir una lectura de cada área, decidir qué corregir y fijar una nueva prioridad común.', score:{judge:3,coordinator:1}}
+      ]
+    },
+    {
+      topic:'Cierre estratégico', title:'Tienen 30 días para demostrar que van por buen camino.',
+      context:'Deben elegir una primera señal clara de avance.',
+      options:[
+        {text:'Definir un indicador principal, una meta y un criterio de éxito medible.', score:{rational:3,judge:1}},
+        {text:'Demostrar que ya existe un sistema repetible que puede sostener el resultado más allá de los 30 días.', score:{architect:3,rational:1}},
+        {text:'Asegurar que cada área tenga un entregable conectado al resultado final y una fecha clara.', score:{coordinator:3,architect:1}},
+        {text:'Mostrar una mejora observable en la capacidad y autonomía del equipo para ejecutar.', score:{coach:3,coordinator:1}},
+        {text:'Definir dos o tres señales críticas, revisar avances semanalmente y tomar decisiones de ajuste.', score:{judge:3,rational:1}}
+      ]
+    }
+  ];
+
+  let selectedCase = null;
+  let current = 0;
+  let answers = Array(QUESTIONS.length).fill(null);
+  let optionOrders = QUESTIONS.map(q => q.options.map((_,i)=>i));
+
+  function shuffleOptions(){
+    optionOrders = QUESTIONS.map(q => {
+      const a=q.options.map((_,i)=>i);
+      for(let i=a.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [a[i],a[j]]=[a[j],a[i]];
+      }
+      return a;
+    });
+  }
+
+  const caseGrid = document.getElementById('caseGrid');
+  const startBtn = document.getElementById('startBtn');
+  const intro = document.getElementById('intro');
+  const quiz = document.getElementById('quiz');
+  const result = document.getElementById('result');
+  const backBtn = document.getElementById('backBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  Object.entries(CASES).forEach(([key,c]) => {
+    const btn = document.createElement('button');
+    btn.type='button'; btn.className='caseCard'; btn.dataset.case=key;
+    btn.innerHTML=`<span class="caseIcon">${c.icon}</span><b>${c.name}</b><small>${c.short}</small>`;
+    btn.addEventListener('click', () => {
+      selectedCase = key;
+      document.querySelectorAll('.caseCard').forEach(x=>x.classList.toggle('selected',x===btn));
+      startBtn.disabled=false;
+    });
+    caseGrid.appendChild(btn);
+  });
+
+  startBtn.addEventListener('click', () => {
+    if(!selectedCase) return;
+    intro.style.display='none';
+    quiz.classList.add('show');
+    current=0; answers=Array(QUESTIONS.length).fill(null); shuffleOptions();
+    renderQuestion();
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+
+  function renderQuestion(){
+    const c = CASES[selectedCase];
+    const q = QUESTIONS[current];
+    document.getElementById('progressText').textContent=`Decisión ${current+1} de ${QUESTIONS.length}`;
+    document.getElementById('progressTopic').textContent=q.topic;
+    document.getElementById('progressBar').style.width=`${((current+1)/QUESTIONS.length)*100}%`;
+    document.getElementById('caseName').textContent=c.name;
+    document.getElementById('caseProblem').textContent=c.problem;
+    document.getElementById('caseState').textContent=c.state;
+    document.getElementById('questionTopic').textContent=q.topic;
+    document.getElementById('questionTitle').textContent=q.title;
+    document.getElementById('questionContext').textContent=q.context;
+    const options=document.getElementById('options'); options.innerHTML='';
+    optionOrders[current].forEach((originalIndex,displayIndex)=>{
+      const o=q.options[originalIndex];
+      const label=document.createElement('label'); label.className='option'+(answers[current]===originalIndex?' selected':'');
+      const input=document.createElement('input'); input.type='radio'; input.name='answer'; input.value=originalIndex; input.checked=answers[current]===originalIndex;
+      const span=document.createElement('span'); span.textContent=o.text;
+      label.append(input,span);
+      input.addEventListener('change',()=>{
+        answers[current]=originalIndex;
+        document.querySelectorAll('.option').forEach((x,idx)=>x.classList.toggle('selected',idx===displayIndex));
+        nextBtn.disabled=false;
+        document.getElementById('feedback').innerHTML='<strong>Decisión registrada.</strong> Sigan con la que realmente tomarían, no con la que suene “más correcta”.';
+      });
+      options.appendChild(label);
+    });
+    document.getElementById('feedback').textContent=answers[current]===null?'Elijan una sola respuesta. No hay una opción “perfecta”.':'Decisión registrada.';
+    backBtn.disabled=current===0;
+    nextBtn.disabled=answers[current]===null;
+    nextBtn.textContent=current===QUESTIONS.length-1?'Ver mi perfil de estratega':'Siguiente decisión';
+  }
+
+  backBtn.addEventListener('click',()=>{if(current>0){current--;renderQuestion();}});
+  nextBtn.addEventListener('click',()=>{
+    if(answers[current]===null) return;
+    if(current<QUESTIONS.length-1){current++;renderQuestion();window.scrollTo({top:0,behavior:'smooth'});} else finish();
+  });
+
+  function calculate(){
+    const scores={rational:0,architect:0,coordinator:0,coach:0,judge:0};
+    answers.forEach((ans,qi)=>{
+      const sc=QUESTIONS[qi].options[ans].score;
+      Object.entries(sc).forEach(([k,v])=>scores[k]+=v);
+    });
+    const total=Object.values(scores).reduce((a,b)=>a+b,0);
+    const pct={}; Object.keys(scores).forEach(k=>pct[k]=Math.round((scores[k]/total)*100));
+    const sorted=Object.keys(scores).sort((a,b)=>scores[b]-scores[a]);
+    return {scores,pct,sorted,winner:sorted[0],second:sorted[1]};
+  }
+
+  function finish(){
+    const c=CASES[selectedCase];
+    const res=calculate();
+    quiz.classList.remove('show');
+    result.classList.add('show');
+    document.getElementById('winnerName').textContent=MODELS[res.winner].name;
+    document.getElementById('winnerDesc').textContent=MODELS[res.winner].desc;
+    const gap=res.scores[res.winner]-res.scores[res.second];
+    let reading=MODELS[res.winner].reading;
+    if(gap<=2) reading += ` Su perfil es bastante mixto: ${MODELS[res.second].name} aparece muy cerca, por lo que combinan ambos enfoques según la situación.`;
+    document.getElementById('winnerReading').textContent=reading;
+
+    const bars=document.getElementById('profileBars'); bars.innerHTML='';
+    res.sorted.forEach(k=>{
+      const row=document.createElement('div'); row.className='profileRow';
+      row.innerHTML=`<b>${MODELS[k].name}</b><div class="bar"><div class="fill" style="width:${res.pct[k]}%;background:${MODELS[k].color}"></div></div><div class="pct">${res.pct[k]}%</div>`;
+      bars.appendChild(row);
+    });
+
+    const list=document.getElementById('decisionList'); list.innerHTML='';
+    answers.forEach((ans,i)=>{
+      const item=document.createElement('div'); item.className='decisionItem';
+      item.innerHTML=`<small>${i+1}. ${QUESTIONS[i].topic}</small><p>${QUESTIONS[i].options[ans].text}</p>`;
+      list.appendChild(item);
+    });
+
+    const decisionsText=answers.map((ans,i)=>`${i+1}. ${QUESTIONS[i].topic}: ${QUESTIONS[i].options[ans].text}`).join('\n');
+    const profileText=res.sorted.map(k=>`${MODELS[k].name}: ${res.pct[k]}%`).join(' · ');
+    const prompt=`Crea una presentación universitaria visual, moderna, clara y breve sobre estrategia empresarial. Debe sentirse natural y humana, no como una presentación genérica hecha por IA. Usa exclusivamente la información siguiente y no inventes datos.\n\nCASO EMPRESARIAL: ${c.name}\nSITUACIÓN: ${c.problem}\nCONTEXTO: ${c.state}\n\nRESULTADO DEL TEST DE DECISIONES:\nTipo de estratega dominante: ${MODELS[res.winner].name}\nPerfil completo: ${profileText}\nInterpretación: ${reading}\n\nRECORRIDO DE 10 DECISIONES DEL EQUIPO:\n${decisionsText}\n\nOBJETIVO DE LA PRESENTACIÓN:\nExplicar qué decisiones tomó el equipo, qué patrón se observa en esas decisiones y por qué ese patrón conduce al perfil ${MODELS[res.winner].name}. No presentar el resultado como algo absoluto: explicar que es el estilo dominante dentro de este ejercicio.\n\nESTRUCTURA SUGERIDA DE 6 DIAPOSITIVAS:\n1) Portada con un título creativo relacionado con el caso y el perfil.\n2) El caso: problema y contexto empresarial.\n3) Nuestro recorrido: resumir las 10 decisiones agrupándolas en 3 o 4 bloques visuales.\n4) Resultado: mostrar ${MODELS[res.winner].name} como perfil dominante y el porcentaje de los cinco modelos con una visualización sencilla.\n5) ¿Qué dicen nuestras decisiones?: explicar con 3 evidencias concretas del recorrido por qué apareció ese perfil y mencionar el segundo perfil más cercano si aporta valor.\n6) Cierre: qué aprendimos sobre nuestra manera de pensar estratégicamente y una pregunta final para discusión.\n\nDISEÑO:\nPoco texto, frases cortas, jerarquía visual clara, íconos y gráficos simples. Evitar párrafos largos, clichés empresariales y lenguaje demasiado perfecto. Que parezca una exposición universitaria real preparada por estudiantes y que pueda explicarse en 5 minutos.`;
+    document.getElementById('aiPrompt').value=prompt;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', async()=>{
+    const text=document.getElementById('aiPrompt').value;
+    try{
+      await navigator.clipboard.writeText(text);
+      const ok=document.getElementById('copyOk'); ok.style.display='inline'; setTimeout(()=>ok.style.display='none',1800);
+    }catch(e){
+      const area=document.getElementById('aiPrompt'); area.focus(); area.select();
+    }
+  });
+})();
+</script>
+</body>
+</html>
